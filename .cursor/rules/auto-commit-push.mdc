@@ -1,0 +1,22 @@
+---
+description: Auto commit and push after completing code changes (Railway/Vercel deploy)
+alwaysApply: true
+---
+
+# Auto commit & push
+
+After finishing a task that modified project files:
+
+1. Run `git status` and `git diff` — do not commit if there are no real changes.
+2. Never stage or commit: `.env`, `*.db`, `node_modules/`, secrets, credentials.
+3. Stage only files related to the completed work.
+4. Write a concise commit message (1–2 sentences, focus on why).
+5. Commit and `git push` to `origin` on the current branch.
+6. Briefly tell the user the commit hash/message and that push triggered redeploy.
+
+Skip auto-commit when:
+- User explicitly says not to commit
+- Changes are WIP / user asked to review first
+- Only exploratory reads, no file edits
+
+Railway deploys from GitHub (`backend/`); push is required for new builds.

@@ -3,7 +3,8 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm ci && npm run build"
+# NODE_ENV=production on Railway skips devDependencies; TypeScript build needs them.
+buildCommand = "npm ci --include=dev && npm run build"
 
 [deploy]
 startCommand = "npm run start:prod"
