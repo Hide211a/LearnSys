@@ -1,0 +1,12 @@
+# Fallback if Dockerfile is not used
+[variables]
+NIXPACKS_INSTALL_DEV_DEPS = "true"
+
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "node dist/index.js"
