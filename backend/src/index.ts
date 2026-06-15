@@ -8,6 +8,7 @@ import adminRoutes from './routes/admin.js';
 import teacherRoutes from './routes/teacher.js';
 import studentRoutes from './routes/student.js';
 import sharedRoutes from './routes/shared.js';
+import { bootstrapDatabase } from './lib/bootstrap.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -73,6 +74,8 @@ app.use('/api', sharedRoutes);
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
+
+await bootstrapDatabase();
 
 app.listen(PORT, HOST, () => {
   console.log(`API listening on ${HOST}:${PORT}`);
