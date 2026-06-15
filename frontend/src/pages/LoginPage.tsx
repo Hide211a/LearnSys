@@ -46,8 +46,11 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate('/cabinet');
-    } catch {
-      setError('Невірний email або пароль');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Не вдалося увійти. Перевірте email і пароль.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

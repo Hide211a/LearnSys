@@ -18,28 +18,33 @@ router.post('/login', async (req, res) => {
     res.status(400).json({ error: 'Невірні дані' });
     return;
   }
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
-    include: { classGroup: true },
-  });
-  if (!user || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
-    res.status(401).json({ error: 'Невірний email або пароль' });
-    return;
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: parsed.data.email },
+      include: { classGroup: true },
+    });
+    if (!user || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
+      res.status(401).json({ error: 'Невірний email або пароль' });
+      return;
+    }
+    const token = signToken({ userId: user.id, role: user.role, email: user.email });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        patronymic: user.patronymic,
+        role: user.role,
+        classGroupId: user.classGroupId,
+        classGroup: user.classGroup,
+      },
+    });
+  } catch (err) {
+    console.error('Login failed:', err);
+    res.status(503).json({ error: 'База даних недоступна. Спробуйте пізніше.' });
   }
-  const token = signToken({ userId: user.id, role: user.role, email: user.email });
-  res.json({
-    token,
-    user: {
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      patronymic: user.patronymic,
-      role: user.role,
-      classGroupId: user.classGroupId,
-      classGroup: user.classGroup,
-    },
-  });
 });
 
 router.get('/me', authenticate, async (req: AuthRequest, res) => {

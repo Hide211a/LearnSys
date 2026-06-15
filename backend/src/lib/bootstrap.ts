@@ -7,6 +7,9 @@ const appRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
 export async function bootstrapDatabase() {
   try {
+    console.log('Applying database schema (prisma db push)...');
+    execSync('npx prisma db push --skip-generate', { stdio: 'inherit', cwd: appRoot });
+
     const count = await prisma.user.count();
     if (count > 0) {
       console.log(`Database ready (${count} users).`);
@@ -18,5 +21,6 @@ export async function bootstrapDatabase() {
     console.log('Demo seed completed.');
   } catch (err) {
     console.error('Database bootstrap failed:', err);
+    throw err;
   }
 }

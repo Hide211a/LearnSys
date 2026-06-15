@@ -19,7 +19,7 @@ const HOST = process.env.HOST ?? '0.0.0.0';
 const defaultOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
 const extraOrigins = (process.env.FRONTEND_URL ?? '')
   .split(',')
-  .map((o) => o.trim())
+  .map((o) => o.trim().replace(/\/$/, ''))
   .filter(Boolean);
 const allowedOrigins = [...defaultOrigins, ...extraOrigins];
 
@@ -75,7 +75,12 @@ app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-await bootstrapDatabase();
+try {
+  await bootstrapDatabase();
+} catch (err) {
+  console.error('Fatal: database bootstrap failed, exiting.', err);
+  process.exit(1);
+}
 
 app.listen(PORT, HOST, () => {
   console.log(`API listening on ${HOST}:${PORT}`);
