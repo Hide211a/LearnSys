@@ -1,0 +1,317 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum Attendance {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum HomeworkStatus {
+  NOT_SUBMITTED
+  SUBMITTED
+  RETURNED
+  GRADED
+}
+
+enum QuestionType {
+  SINGLE
+  MULTIPLE
+  OPEN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  patronymic   String?
+  role         Role
+  avatarUrl    String?
+  classGroupId String?
+  classGroup   ClassGroup? @relation("ClassStudents", fields: [classGroupId], references: [id])
+  parentOf     ParentLink[] @relation("Parent")
+  children     ParentLink[] @relation("Child")
+  taughtAssignments TeacherAssignment[]
+  scheduleSlots     ScheduleSlot[]
+  lessonRecords     LessonRecord[] @relation("StudentRecords")
+  createdHomework   Homework[]
+  submissions       HomeworkSubmission[]
+  announcements     Announcement[]
+  notifications     Notification[]
+  quizAttempts      QuizAttempt[]
+  pollVotes         PollVote[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ParentLink {
+  id       String @id @default(cuid())
+  parentId String
+  childId  String
+  parent   User   @relation("Parent", fields: [parentId], references: [id], onDelete: Cascade)
+  child    User   @relation("Child", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+}
+
+model SchoolYear {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isCurrent Boolean  @default(false)
+  classes   ClassGroup[]
+}
+
+model ClassGroup {
+  id            String   @id @default(cuid())
+  name          String
+  grade         Int
+  schoolYearId  String
+  schoolYear    SchoolYear @relation(fields: [schoolYearId], references: [id])
+  classTeacherId String?
+  students      User[]   @relation("ClassStudents")
+  scheduleSlots ScheduleSlot[]
+  homework      Homework[]
+  announcements Announcement[]
+  assignments   TeacherAssignment[]
+  lessonRecords LessonRecord[]
+  events        Event[]
+  polls         Poll[]
+  createdAt     DateTime @default(now())
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  assignments TeacherAssignment[]
+  scheduleSlots ScheduleSlot[]
+  lessonRecords LessonRecord[]
+  homework      Homework[]
+  materials     LessonMaterial[]
+  quizzes       Quiz[]
+}
+
+model TeacherAssignment {
+  id           String     @id @default(cuid())
+  teacherId    String
+  teacher      User       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject    @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classGroupId String
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, subjectId, classGroupId])
+}
+
+model ScheduleSlot {
+  id             String     @id @default(cuid())
+  dayOfWeek      Int
+  lessonNumber   Int
+  classGroupId   String
+  classGroup     ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  subjectId      String
+  subject        Subject    @relation(fields: [subjectId], references: [id])
+  teacherId      String
+  teacher        User       @relation(fields: [teacherId], references: [id])
+  room           String?
+  isSubstitution Boolean    @default(false)
+  note           String?
+
+  @@unique([classGroupId, dayOfWeek, lessonNumber])
+}
+
+model LessonRecord {
+  id           String     @id @default(cuid())
+  date         DateTime
+  classGroupId String
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  studentId    String
+  student      User       @relation("StudentRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  grade        Int?
+  topic        String?
+  homeworkNote String?
+  attendance   Attendance @default(PRESENT)
+
+  @@unique([date, subjectId, studentId])
+}
+
+model Homework {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  dueDate      DateTime
+  classGroupId String
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  teacherId    String
+  teacher      User       @relation(fields: [teacherId], references: [id])
+  submissions  HomeworkSubmission[]
+  comments     HomeworkComment[]
+  createdAt    DateTime @default(now())
+}
+
+model HomeworkSubmission {
+  id         String         @id @default(cuid())
+  homeworkId String
+  homework   Homework       @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  content    String?
+  fileUrl    String?
+  status     HomeworkStatus @default(NOT_SUBMITTED)
+  grade      Int?
+  feedback   String?
+  submittedAt DateTime?
+
+  @@unique([homeworkId, studentId])
+}
+
+model HomeworkComment {
+  id         String   @id @default(cuid())
+  homeworkId String
+  homework   Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  authorId   String
+  authorName String
+  text       String
+  createdAt  DateTime @default(now())
+}
+
+model Announcement {
+  id           String     @id @default(cuid())
+  title        String
+  content      String
+  classGroupId String?
+  classGroup   ClassGroup? @relation(fields: [classGroupId], references: [id])
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id])
+  isGlobal     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+}
+
+model LessonMaterial {
+  id        String   @id @default(cuid())
+  title     String
+  fileUrl   String?
+  linkUrl   String?
+  subjectId String
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  classGroupId String
+  lessonDate DateTime
+  createdAt DateTime @default(now())
+}
+
+model Quiz {
+  id           String   @id @default(cuid())
+  title        String
+  subjectId    String
+  subject      Subject  @relation(fields: [subjectId], references: [id])
+  classGroupId String
+  teacherId    String
+  timeLimitMin Int?
+  questions    QuizQuestion[]
+  attempts     QuizAttempt[]
+  createdAt    DateTime @default(now())
+}
+
+model QuizQuestion {
+  id       String       @id @default(cuid())
+  quizId   String
+  quiz     Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  text     String
+  type     QuestionType
+  points   Int          @default(1)
+  options  QuizOption[]
+}
+
+model QuizOption {
+  id         String       @id @default(cuid())
+  questionId String
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  isCorrect  Boolean      @default(false)
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  studentId String
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  score     Float?
+  answers   String
+  completedAt DateTime?
+
+  @@unique([quizId, studentId])
+}
+
+model Event {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  startDate    DateTime
+  endDate      DateTime?
+  isHoliday    Boolean    @default(false)
+  classGroupId String?
+  classGroup   ClassGroup? @relation(fields: [classGroupId], references: [id])
+}
+
+model Poll {
+  id           String     @id @default(cuid())
+  question     String
+  classGroupId String
+  classGroup   ClassGroup @relation(fields: [classGroupId], references: [id], onDelete: Cascade)
+  authorId     String
+  allowMultiple Boolean   @default(false)
+  options      PollOption[]
+  createdAt    DateTime   @default(now())
+}
+
+model PollOption {
+  id     String @id @default(cuid())
+  pollId String
+  poll   Poll   @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  text   String
+  votes  PollVote[]
+}
+
+model PollVote {
+  id       String @id @default(cuid())
+  optionId String
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,12 @@
+@media print {
+  .MuiDrawer-root,
+  .MuiAppBar-root,
+  .MuiToolbar-root button,
+  nav {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    width: 100% !important;
+  }
+}

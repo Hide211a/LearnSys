@@ -1,0 +1,36 @@
+/* Глобальні правила адаптивності */
+
+html {
+  overflow-x: hidden;
+}
+
+#root {
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Горизонтальний скрол для широких таблиць */
+.MuiPaper-root:has(> .MuiTable-root),
+.MuiPaper-root:has(> .MuiTableContainer-root) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.MuiTable-root {
+  min-width: 480px;
+}
+
+/* Довгі кнопки (демо-логін тощо) */
+.btn-wrap-text {
+  white-space: normal !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
+  line-height: 1.35 !important;
+}
+
+/* Recharts — не виходить за межі контейнера */
+.recharts-responsive-container,
+main .MuiBox-root:has(.recharts-responsive-container) {
+  min-width: 0 !important;
+  max-width: 100%;
+}

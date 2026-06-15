@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+frontend/dist/
+backend/dist/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Database
+*.db
+*.db-journal
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# Uploads
+uploads/
+backend/uploads/
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Deploy
+.vercel
+.railway

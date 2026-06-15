@@ -1,0 +1,13 @@
+# Railway: Root Directory = backend
+# https://docs.railway.com/guides/deployments
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm ci && npm run build"
+
+[deploy]
+startCommand = "npm run start:prod"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+releaseCommand = "npm run db:deploy"
