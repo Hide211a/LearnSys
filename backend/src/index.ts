@@ -50,7 +50,18 @@ const healthPayload = () => ({
   timestamp: new Date().toISOString(),
 });
 
+const apiInfo = () => ({
+  name: 'LearnSys API',
+  school: 'Кузьмівська гімназія',
+  status: 'running',
+  health: '/api/health',
+  login: '/api/auth/login',
+  hint: 'Це API-сервер. Для входу відкрийте веб-додаток (frontend), а не це посилання.',
+});
+
+app.get('/', (_req, res) => res.status(200).json(apiInfo()));
 app.get('/health', (_req, res) => res.status(200).json(healthPayload()));
+app.get('/api', (_req, res) => res.status(200).json(apiInfo()));
 app.get('/api/health', (_req, res) => res.status(200).json(healthPayload()));
 
 app.use('/api/auth', authRoutes);
