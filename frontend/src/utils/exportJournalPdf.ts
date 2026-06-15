@@ -8,7 +8,7 @@ const vfs =
   (pdfFonts as { default?: { pdfMake?: { vfs: Record<string, string> } } }).default?.pdfMake?.vfs;
 
 if (vfs) {
-  (pdfMake as { vfs: Record<string, string> }).vfs = vfs;
+  (pdfMake as unknown as { vfs: Record<string, string> }).vfs = vfs;
 }
 
 const ATTENDANCE_UK: Record<string, string> = {
